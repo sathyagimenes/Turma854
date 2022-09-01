@@ -21,14 +21,14 @@ namespace APIProdutos.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Produto> GetProduto(string descricao)
+        public ActionResult<List<Produto>> GetProduto(string descricao)
         {
-            var produtos = ProdutoList;
-            if (produtos == null)
+            var resultado = _repositoryProduto.GetProdutoDesc(descricao);
+            if (resultado == null)
             {
                 return NotFound();
             }
-            return Ok(produtos);
+            return Ok(resultado);
         }
 
         [HttpGet("/produto")]
@@ -57,10 +57,10 @@ namespace APIProdutos.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateProduto(long id, Produto produto)
         {
-            var produtos = ProdutoList;
-            if (produtos == null)
+            if (!_repositoryProduto.UpdateProduto(id, produto))
+            {
                 return NotFound();
-
+            }
             return NoContent();
         }
 
