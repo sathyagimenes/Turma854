@@ -1,4 +1,4 @@
-using APIProdutos.Repository;
+using APIProdutos.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIProdutos.Controllers
@@ -7,35 +7,32 @@ namespace APIProdutos.Controllers
     [Route("[controller]")]
     public class ProdutoController : ControllerBase
     {
-        public List<Produto> ProdutoList { get; set; }
 
-        public ProdutoRepository _repositoryProduto;
-
-        public ProdutoController(IConfiguration configuration)
+        public IProdutoService _produtoService;
+        public ProdutoController(IProdutoService produtoService)
         {
-            ProdutoList = new List<Produto>();
-            _repositoryProduto = new ProdutoRepository(configuration);
+            _produtoService = produtoService;
         }
 
         [HttpGet("/produto/{descricao}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Produto> GetProduto(string descricao)
+        public ActionResult<List<Produto>> GetProduto(string descricao)
         {
-            var produtos = ProdutoList;
-            if (produtos == null)
+            var resultado = _produtoService.GetProdutoDesc(descricao);
+            if (resultado == null)
             {
                 return NotFound();
             }
-            return Ok(produtos);
+            return Ok(resultado);
         }
 
         [HttpGet("/produto")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<List<Produto>> GetProdutos()
         {
-            return Ok(_repositoryProduto.GetProdutos());
+            return Ok(_produtoService.GetProdutos());
         }
 
         [HttpPost]
@@ -43,7 +40,7 @@ namespace APIProdutos.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<Produto> PostProduto(Produto produto)
         {
-            if (!_repositoryProduto.InsertProduto(produto))
+            if (!_produtoService.InsertProduto(produto))
             {
                 return BadRequest();
             }
@@ -57,10 +54,10 @@ namespace APIProdutos.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateProduto(long id, Produto produto)
         {
-            var produtos = ProdutoList;
-            if (produtos == null)
+            if (!_produtoService.UpdateProduto(id, produto))
+            {
                 return NotFound();
-
+            }
             return NoContent();
         }
 
@@ -70,7 +67,7 @@ namespace APIProdutos.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<List<Produto>> DeleteProduto(long id)
         {
-            if (!_repositoryProduto.DeleteProduto(id))
+            if (!_produtoService.DeleteProduto(id))
             {
                 return NotFound();
             }
